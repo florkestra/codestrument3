@@ -10,12 +10,13 @@ input{
 	left: 25%;
 }
 .code {
+    z-index: 1;
 	position:absolute;
     opacity: 0.5;
 }
-.code:hover{
-    opacity:1.0;
-    transition: opacity .15s ease-in-out
+.code:hover {
+    opacity: 1.0;
+    transition: opacity .15s ease-in-out;
 }
 #result{
     position: fixed;
@@ -24,26 +25,41 @@ input{
     width: 50%;
     text-align: center;
 }
+#midilayout {
+    position:fixed;
+    display:none;
+    width: 100%;
+    height: 100%;
+}
+.pad {
+    float: left;
+    width: 32%;
+    height: 32%;
+    background-color:blue;
+    opacity: 0.5;
+    border: 1px solid black;
+}
 </style>
 </head>
 <body>
-
     <input type="text" id="console" onKeyPress="runcode(event)">
     <div id="count"></div>
     <div id="result"></div>
+    <div id="midilayout">
+        <div class="pad"></div>
+        <div class="pad"></div>
+        <div class="pad"></div>
+        <div class="pad"></div>
+        <div class="pad"></div>
+        <div class="pad"></div>
+        <div class="pad"></div>
+        <div class="pad"></div>
+        <div class="pad"></div>
+    </div>
     <script>
         var code = [];
-        /*if (confirm("Would you like to load code?")){
-            loadCode(); 
-        }*/
+        var recording = false;
         $("#count").html(code.length);
-
-        function storecode(){
-            var showcount = document.getElementById("count");
-            showcount.innerHTML = code.length;
-
-            localStorage['flork-'+code.length] = document.getElementById("console").value;	    
-        };
 
         function runcode(e){
             if(e.keyCode === 13) {
@@ -55,6 +71,9 @@ input{
                     case 'clear()':
                         clearCode();
                         $("#result").show().html("organizing").fadeOut(3000);
+                        break;
+                    case 'record':
+                        recording = true;
                         break;
                     case 'last':
                         $("#result").show().html(code[code.length-1]).fadeOut(3000);
@@ -76,13 +95,13 @@ input{
                     default:  
                         try{
                             eval( $('#console').val()     );
+
+                            createNewCodeDiv( $('#console').val() );
+                            if (recording) {storecode();}
                         }catch(err){
                             $("#result").show().html("nope").fadeOut(3000);
                             document.getElementById("console").value = "";
-                            return;// not the best solution
                         }
-                        createNewCodeDiv( $('#console').val() );
-                        storecode();	
                         break; 
                 }
                 document.getElementById("console").value = "";
@@ -91,6 +110,14 @@ input{
             ////////
         };
 
+        //-------------------------------------
+        //  functions to manage localStorage use
+        //-------------------------------------
+        function storecode(){
+            var showcount = document.getElementById("count");
+            showcount.innerHTML = code.length;
+            localStorage['flork-'+code.length] = document.getElementById("console").value;	    
+        };
 
         function clearCode(){
                 for(var i = 0; localStorage.getItem("flork-"+i) !== null; i++){
