@@ -20,7 +20,8 @@ input{
 #result{
     position: fixed;
     top: 55%;
-    left: 50%;
+    left:25%;
+    width: 50%;
     text-align: center;
 }
 </style>
@@ -31,69 +32,86 @@ input{
     <div id="count"></div>
     <div id="result"></div>
     <script>
-        var count = 0;
-        if(localStorage.getItem("flork-lines")){
-            count = Number (localStorage.getItem("flork-lines") );
-        }else{
-            localStorage.setItem("flork-lines", count);
-        }
-
-        //var showcount = document.getElementById("count");
-        //showcount.innerHTML = count;
-        $("#count").html(count);
+        var code = [];
+        /*if (confirm("Would you like to load code?")){
+            loadCode(); 
+        }*/
+        $("#count").html(code.length);
 
         function storecode(){
             var showcount = document.getElementById("count");
-            showcount.innerHTML = count;
+            showcount.innerHTML = code.length;
 
-            localStorage.setItem("lines", count);
-            localStorage['flork-'+count++] = document.getElementById("console").value;	    
+            localStorage['flork-'+code.length] = document.getElementById("console").value;	    
         };
 
         function runcode(e){
-            // if e does not equal event then bork? 
             if(e.keyCode === 13) {
-                /*
+
+                // if console is a number then show that code
+                // if console is a number with () then run that line
+
                 switch (document.getElementById("console").value ){
-                    case 'clear':
-                        console.log("clearing...");
+                    case 'clear()':
+                        clearCode();
+                        $("#result").show().html("organizing").fadeOut(3000);
                         break;
-                    case 'stop':
+                    case 'last':
+                        $("#result").show().html(code[code.length-1]).fadeOut(3000);
+                        break;
+                    case 'last()':
+                        // run the last command
+                        break;
+                    case 'load()':
+                        loadCode();
+                        break;
+                    case 'scatter()':
+                        scatter();
+                        $("#result").show().html("look out").fadeOut(3000);
                         break;
                     case 'organize()':
                          organize();
                         $("#result").show().html("organizing").fadeOut(3000);
                         break;
                     default:  
-                        createNewCodeDiv();
+                        try{
+                            eval( $('#console').val()     );
+                        }catch(err){
+                            $("#result").show().html("nope").fadeOut(3000);
+                            document.getElementById("console").value = "";
+                            return;// not the best solution
+                        }
+                        createNewCodeDiv( $('#console').val() );
                         storecode();	
                         break; 
-                }*/
-                var result = eval( document.getElementById("console").value );
-                $("#result").html(result);
-                console.log(result);
-
-                createNewCodeDiv();
+                }
                 document.getElementById("console").value = "";
-            }
+            } 
+            ///////// else if e.keyCode === ESC then show midi overlay
+            ////////
         };
 
 
         function clearCode(){
                 for(var i = 0; localStorage.getItem("flork-"+i) !== null; i++){
-                    //console.log(localStorage.getItem("flork-"+i));
                     localStorage.removeItem("flork-"+i);
                 }
-                count = 0;
-                localStorage.setItem("lines", count);
         };
 
-        function createNewCodeDiv(){
+        function loadCode(){
+                for(var i = 0; localStorage.getItem("flork-"+i) !== null; i++){
+                    var storageItem = localStorage.getItem("flork-"+i);
+                    createNewCodeDiv( storageItem );
+                    code[i] = storageItem;
+                }
+        };
+
+        function createNewCodeDiv(content){
                 var newdiv = document.createElement("div");	
-                newdiv.innerHTML = document.getElementById("console").value;
+                newdiv.innerHTML = content;
                 newdiv.className = "code";
                 newdiv.onclick = function(){
-                    document.getElementById("console").value = this.innerHTML;
+                    $("#console").val(this.innerHTML);
                     $("#console").focus();
                 };
                 newdiv.style.top = Math.random() * window.innerHeight;
@@ -101,6 +119,9 @@ input{
                 document.body.appendChild(newdiv);
         };
 
+        //-------------------------------------
+        //  functions to move code divs around the screen
+        //-------------------------------------
         function scatter(){
             $(".code").each(function(){
                 $(this).animate({top:Math.random()*window.innerHeight,left:Math.random()*window.innerWidth},'fast');
