@@ -43,7 +43,7 @@ input{
 </head>
 <body>
     <input type="text" id="console" onKeyPress="runcode(event)">
-    <div id="count"></div>
+    <div id="count" style="display:none"></div>
     <div id="result"></div>
     <div id="midilayout">
         <div class="pad"></div>
@@ -79,7 +79,7 @@ input{
                         $("#result").show().html(code[code.length-1]).fadeOut(3000);
                         break;
                     case 'last()':
-                        // run the last command
+                        jQuery.globalEval(  code[code.length-1]  ); 
                         break;
                     case 'load()':
                         loadCode();
@@ -117,11 +117,13 @@ input{
             var showcount = document.getElementById("count");
             showcount.innerHTML = code.length;
             localStorage['flork-'+code.length] = document.getElementById("console").value;	    
+            //code[code.length] = document.getElementById("console").value;	    
         };
 
         function clearCode(){
-                for(var i = 0; localStorage.getItem("flork-"+i) !== null; i++){
-                    localStorage.removeItem("flork-"+i);
+                var i = 0;
+                while (localStorage.getItem("flork-"+i) !== null){
+                    localStorage.removeItem("flork-"+i++);
                 }
         };
 
