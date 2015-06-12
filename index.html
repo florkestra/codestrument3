@@ -9,57 +9,109 @@ input{
 	top: 50%;
 	left: 25%;
 }
-div {
-	position:fixed;
+.code {
+	position:absolute;
+    opacity: 0.5;
+}
+.code:hover{
+    opacity:1.0;
+    transition: opacity .15s ease-in-out
+}
+#result{
+    position: fixed;
+    top: 55%;
+    left: 50%;
+    text-align: center;
 }
 </style>
 </head>
 <body>
 
-<input type="text" id="code" onKeyPress="isenter(event)">
-<div id="count"></div>
-<script>
-    // make this flork-lines and flork-0
-    var count = 0;
-    if(localStorage.getItem("flork-lines")){
-	count = Number (localStorage.getItem("flork-lines") );
-    }else{
-	localStorage.setItem("flork-lines", count);
-    }
+    <input type="text" id="console" onKeyPress="runcode(event)">
+    <div id="count"></div>
+    <div id="result"></div>
+    <script>
+        var count = 0;
+        if(localStorage.getItem("flork-lines")){
+            count = Number (localStorage.getItem("flork-lines") );
+        }else{
+            localStorage.setItem("flork-lines", count);
+        }
 
-    var showcount = document.getElementById("count");
-    showcount.innerHTML = count;
+        //var showcount = document.getElementById("count");
+        //showcount.innerHTML = count;
+        $("#count").html(count);
 
-    function storecode(){
-	    var showcount = document.getElementById("count");
-	    showcount.innerHTML = count;
+        function storecode(){
+            var showcount = document.getElementById("count");
+            showcount.innerHTML = count;
 
-	    localStorage.setItem("lines", count);
-            localStorage['flork-'+count] = document.getElementById("code").value;	    
-            count++;
-    };
+            localStorage.setItem("lines", count);
+            localStorage['flork-'+count++] = document.getElementById("console").value;	    
+        };
 
-    function isenter(e){
-	if(e.keyCode === 13) {
-		storecode();	
-		
-	        var newdiv = document.createElement("div");	
-		newdiv.innerHTML = document.getElementById("code").value;
-		newdiv.onclick = function(){
-			document.getElementById("code").value = this.innerHTML;
-		};
-		newdiv.style.top = Math.random() * window.innerHeight;
-		newdiv.style.left= Math.random() * window.innerWidth;
-		document.body.appendChild(newdiv);
-		document.getElementById("code").value = "";
-	}
-    };
+        function runcode(e){
+            // if e does not equal event then bork? 
+            if(e.keyCode === 13) {
+                /*
+                switch (document.getElementById("console").value ){
+                    case 'clear':
+                        console.log("clearing...");
+                        break;
+                    case 'stop':
+                        break;
+                    case 'organize()':
+                         organize();
+                        $("#result").show().html("organizing").fadeOut(3000);
+                        break;
+                    default:  
+                        createNewCodeDiv();
+                        storecode();	
+                        break; 
+                }*/
+                var result = eval( document.getElementById("console").value );
+                $("#result").html(result);
+                console.log(result);
 
-    function fillcode(data){
-	document.getElementById("code").value = data;
-	console.log("kjfkljd");
-    };
-//    document.body.onclick = function(){fillcode("fjffjfjfffffffffff");}
-</script>
+                createNewCodeDiv();
+                document.getElementById("console").value = "";
+            }
+        };
+
+
+        function clearCode(){
+                for(var i = 0; localStorage.getItem("flork-"+i) !== null; i++){
+                    //console.log(localStorage.getItem("flork-"+i));
+                    localStorage.removeItem("flork-"+i);
+                }
+                count = 0;
+                localStorage.setItem("lines", count);
+        };
+
+        function createNewCodeDiv(){
+                var newdiv = document.createElement("div");	
+                newdiv.innerHTML = document.getElementById("console").value;
+                newdiv.className = "code";
+                newdiv.onclick = function(){
+                    document.getElementById("console").value = this.innerHTML;
+                    $("#console").focus();
+                };
+                newdiv.style.top = Math.random() * window.innerHeight;
+                newdiv.style.left= Math.random() * window.innerWidth;
+                document.body.appendChild(newdiv);
+        };
+
+        function scatter(){
+            $(".code").each(function(){
+                $(this).animate({top:Math.random()*window.innerHeight,left:Math.random()*window.innerWidth},'fast');
+            });
+        }
+
+        function organize(){
+            $(".code").each(function(index){
+                $(this).animate({top:20*index,left:0.9*window.innerWidth},'fast');
+            });
+        }
+    </script>
 </body>
 </html>
