@@ -31,41 +31,74 @@ input{
     width: 100%;
     height: 100%;
 }
-.pad {
+.nexus {
     float: left;
-    width: 32%;
-    height: 32%;
+    width: 24%;
+    height: 24%;
     background-color:blue;
     opacity: 0.5;
     border: 1px solid black;
 }
+.selected {
+    border: 2px dashed blue;
+}
 </style>
 </head>
 <body>
-    <input type="text" id="console" onKeyPress="runcode(event)">
+    <!--input type="text" id="console" onKeyPress="runcode(event)"-->
+    <input type="text" id="console">
     <div id="count" style="display:none"></div>
     <div id="result"></div>
     <div id="midilayout">
-        <div class="pad"></div>
-        <div class="pad"></div>
-        <div class="pad"></div>
-        <div class="pad"></div>
-        <div class="pad"></div>
-        <div class="pad"></div>
-        <div class="pad"></div>
-        <div class="pad"></div>
-        <div class="pad"></div>
+        <div class="nexus"></div>
+        <div class="nexus"></div>
+        <div class="nexus"></div>
+        <div class="nexus"></div>
+    
+        <div class="nexus"></div>
+        <div class="nexus"></div>
+        <div class="nexus"></div>
+        <div class="nexus"></div>
+   
+        <div class="nexus"></div>
+        <div class="nexus"></div>
+        <div class="nexus"></div>
+        <div class="nexus"></div>
+  
+        <div class="nexus"></div>
+        <div class="nexus"></div>
+        <div class="nexus"></div>
+        <div class="nexus"></div>
     </div>
     <script>
+    (function (){
         var code = [];
         var recording = false;
-        $("#count").html(code.length);
+        document.getElementById("console").onkeypress = runcode;
 
         function runcode(e){
+            if(e.keyCode === 27){
+                $("#midilayout").toggle();
+            }
             if(e.keyCode === 13) {
 
                 // if console is a number then show that code
                 // if console is a number with () then run that line
+
+                // load("nameoffile.js"); assumes it is in the instruments folder
+                var isload = document.getElementById("console").value.match(/^load\((?:'|")(.*?)(?:'|")\)/);  
+                if ( isload !== null ) {
+                    (function(){
+                        var newscript = document.createElement("script");
+                        newscript.src = "instruments/" + isload[1];
+                        document.body.appendChild(newscript);
+
+                        // make some sort of div that star wars it up through the screen
+                        $.get(  "instruments/" + isload[1], function(data){
+                            console.log(data);
+                        });
+                    })();
+                }
 
                 switch (document.getElementById("console").value ){
                     case 'clear()':
@@ -77,6 +110,9 @@ input{
                         break;
                     case 'last':
                         $("#result").show().html(code[code.length-1]).fadeOut(3000);
+                        break;
+                    case 'midi':
+                        $("#midilayout").toggle();
                         break;
                     case 'last()':
                         jQuery.globalEval(  code[code.length-1]  ); 
@@ -94,20 +130,22 @@ input{
                         break;
                     default:  
                         try{
-                            eval( $('#console').val()     );
 
+                            jQuery.globalEval( $('#console').val()     );
                             createNewCodeDiv( $('#console').val() );
                             if (recording) {storecode();}
-                        }catch(err){
+                        }
+                        catch(err){
                             $("#result").show().html("nope").fadeOut(3000);
-                            document.getElementById("console").value = "";
+                            //document.getElementById("console").value = "";
+
                         }
                         break; 
-                }
+                    }
+
+                $(".selected").removeClass("selected");
                 document.getElementById("console").value = "";
             } 
-            ///////// else if e.keyCode === ESC then show midi overlay
-            ////////
         };
 
         //-------------------------------------
@@ -140,6 +178,7 @@ input{
                 newdiv.innerHTML = content;
                 newdiv.className = "code";
                 newdiv.onclick = function(){
+                    $(this).addClass("selected");
                     $("#console").val(this.innerHTML);
                     $("#console").focus();
                 };
@@ -162,6 +201,7 @@ input{
                 $(this).animate({top:20*index,left:0.9*window.innerWidth},'fast');
             });
         }
+    })();
     </script>
 </body>
 </html>
