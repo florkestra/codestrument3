@@ -57,39 +57,21 @@
         <textarea id="codearea"></textarea>
         <div id="count" style="display:none"></div>
         <div id="result"></div>
-        <div id="midilayout">
-            <div class="nexus"></div>
-            <div class="nexus"></div>
-            <div class="nexus"></div>
-            <div class="nexus"></div>
-
-            <div class="nexus"></div>
-            <div class="nexus"></div>
-            <div class="nexus"></div>
-            <div class="nexus"></div>
-
-            <div class="nexus"></div>
-            <div class="nexus"></div>
-            <div class="nexus"></div>
-            <div class="nexus"></div>
-
-            <div class="nexus"></div>
-            <div class="nexus"></div>
-            <div class="nexus"></div>
-            <div class="nexus"></div>
-        </div>
+        <div id="midilayout"></div>
 <script>
     (function (){
         var code = [];
         var recording = false;
         document.getElementById("console").onkeypress = runcode;
+        document.getElementById("codearea").onkeypress = runbigcode;
 
         function runcode(e){
-            if(e.keyCode === 27){
-                $("#midilayout").toggle();
-            }
+            if(e.keyCode === 27){ midi(); };
+
             if(e.keyCode === 13) {
                 var consoleinput = $("#console").val();
+                document.getElementById("console").value = "";
+                $(".selected").removeClass("selected");
                 
                 // if console is a number then highlight that div?
                 // if console is a number with () then run that line
@@ -106,7 +88,7 @@
                 if (consoleinput.search("var ") > -1) {
                     try{
                         jQuery.globalEval( consoleinput );
-                        createNewCodeDiv( $('#console').val() );
+                        createNewCodeDiv( consoleinput );
                         if (recording) {storecode();}
                     } catch(err){
                         bork(err);
@@ -116,53 +98,72 @@
         
                 try{
                     if ( eval(consoleinput) !== "dontmakediv")
-                        createNewCodeDiv( $('#console').val() );
+                        createNewCodeDiv( consoleinput );
                     if (recording) {storecode();}
                 } catch(err){
                     bork(err);
                 }
-
             } 
         };
 
-                function history(index){
-                     
-                    return "dontmakediv";
-                }
+        function runbigcode(e){
+            if(e.keyCode === 27){  // doesn't work on a textarea withkeypress. maybe keyup?
+                try {
+                    jQuery.globalEval( document.getElementById("codearea").value     );
+                    document.getElementById("codearea").value  = "";
+                    document.getElementById("codearea").styles.display = "none";
+                }catch(err){
+                    console.log(err); 
+                }    
+            };
+        };
 
-                function midi(){
-                    $("#midilayout").toggle();
-                }
+        function bork(message){
+            message = (message === undefined)? "nope" : message;
+            $("#result").show().html(message).fadeOut(3000);
+            document.getElementById("console").value = "";
+        };
 
-                function last(){
-                    eval( code[code.length-1] );
-                    return "dontmakediv";
-                }
+        //-------------------------------------
+        //  functions for the number input mode
+        //-------------------------------------
+        function history(index){
+             
+            return "dontmakediv";
+        };
 
-                function load(filename){
-                    $.get("instruments/" + filename, function(data){
-                        var newscript = document.createElement("script");
-                        newscript.src = "instruments/" + filename;
-                        document.body.appendChild(newscript);
-                    }).fail(function(){
-                        throw "file not found";
-                    });
-                }
-                
-                function edit(filename){
-                    $.get(  "instruments/" + filename, function(data){
-                        $("#codearea").val(data).show()
-                    }).fail(function(){
-                        throw "file not found";
-                    });
-                }
+        function last(){
+            eval( code[code.length-1] );
+            return "dontmakediv";
+        };
 
-                function bork(message){
-                    message = (message === undefined)? "nope" : message;
-                    $("#result").show().html(message).fadeOut(3000);
-                    $(".selected").removeClass("selected");
-                    document.getElementById("console").value = "";
-                };
+        //-------------------------------------
+        //  functions to load or edit files
+        //-------------------------------------
+        function load(filename){
+            $.get("instruments/" + filename, function(data){
+                var newscript = document.createElement("script");
+                newscript.src = "instruments/" + filename;
+                document.body.appendChild(newscript);
+            }).fail(function(){
+                throw "file not found";
+            });
+        };
+        
+        function edit(filename){
+            $.get(  "instruments/" + filename, function(data){
+                $("#codearea").val(data).show()
+            }).fail(function(){
+                throw "file not found";
+            });
+        };
+
+        //-------------------------------------
+        //  midi management 
+        //-------------------------------------
+        function midi(){
+            $("#midilayout").toggle();
+        };
 
         //-------------------------------------
         //  functions to manage localStorage use
@@ -219,10 +220,9 @@
             });
             return "dontmakediv";
         }
-
-        // things to do at the beginning
-        $("#console").focus();
     })();
 </script>
+<script src="js/mididevicemanagement.js"></script>
+<script> $("#console").focus(); </script>
 </body>
 </html>
