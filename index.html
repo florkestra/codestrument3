@@ -11,8 +11,10 @@
             }
             .code {
                 z-index: 1;
-                position:absolute;
+                position: absolute;
+                width: 10%;
                 opacity: 0.5;
+                overflow: hidden;
             }
             .code:hover {
                 opacity: 1.0;
@@ -50,6 +52,10 @@
                 top: 10%;
                 left: 10%;
             }
+            .sorted:hover {
+                right:0 ; /*make the dive move over bit when hovered?*/
+                color: red;
+            }
         </style>
     </head>
     <body>
@@ -60,7 +66,7 @@
         <div id="midilayout"></div>
 <script>
     (function (){
-        var code = [];
+        var codearchive = [];
         var recording = false;
         document.getElementById("console").onkeypress = runcode;
         document.getElementById("codearea").onkeypress = runbigcode;
@@ -77,14 +83,18 @@
                 // if console is a number with () then run that line
                 var historyshortcut =  consoleinput.match(/(^\d+)(\(\))?/); 
                 if ( historyshortcut !== null ){
-                    if(historyshortcut[2] === undefined ){
-                        history( Number(historyshortcut[0]) );
+                    if(historyshortcut[2] === undefined ){ // doesn't check to see if number is in the right boundss
+                       $(".code").get( Number(historyshortcut[1]) ).className += " selected";
+                       $("#console").val( $(".code").get( Number(historyshortcut[0]) ).innerHTML );
+                       $("#console").focus();
                     }else{
-                        // eval localStorage code.length - Number(historyshortcut) ish
+                        eval( $(".code").get( Number(historyshortcut[1]) ).innerHTML );   
                     }
+
                     return;
                 }
                 // look for variable declarations and bind them to global scope...
+                /* //probably better to just think about scope better
                 if (consoleinput.search("var ") > -1) {
                     try{
                         jQuery.globalEval( consoleinput );
@@ -95,6 +105,7 @@
                     }
                     return;
                 }
+                */
         
                 try{
                     if ( eval(consoleinput) !== "dontmakediv")
@@ -111,7 +122,8 @@
                 try {
                     jQuery.globalEval( document.getElementById("codearea").value     );
                     document.getElementById("codearea").value  = "";
-                    document.getElementById("codearea").styles.display = "none";
+                    $("#codearea").fadeOut(1000);
+                    $("#console").animate({top:window.innerHeight*0.93},1000);
                 }catch(err){
                     console.log(err); 
                 }    
@@ -125,15 +137,11 @@
         };
 
         //-------------------------------------
-        //  functions for the number input mode
+        //  re-execute last line
         //-------------------------------------
-        function history(index){
-             
-            return "dontmakediv";
-        };
-
         function last(){
-            eval( code[code.length-1] );
+            var allcodes = $(".code").toArray();
+            eval( allcodes[allcodes.length-1].innerHTML );
             return "dontmakediv";
         };
 
@@ -157,6 +165,11 @@
                 throw "file not found";
             });
         };
+
+        function code(){
+            $("#codearea").fadeIn(1000,function(){$(this).focus()}); 
+            $("#console").animate({top:window.innerHeight*0.93},1000);
+        }
 
         //-------------------------------------
         //  midi management 
@@ -200,23 +213,32 @@
                 $("#console").focus();
             };
             newdiv.style.top = Math.random() * window.innerHeight;
-            newdiv.style.left= Math.random() * window.innerWidth;
+            newdiv.style.right= Math.random() * (window.innerWidth - $(".code").width()); 
             document.body.appendChild(newdiv);
         };
 
+        function remove(index){
+            if(typeof index === "number" && !isNaN(index))
+                $(".code")[index].remove();
+            return "dontmakediv";
+        };
+        
         //-------------------------------------
         //  functions to move code divs around the screen
         //-------------------------------------
         function scatter(){
             $(".code").each(function(){
-                $(this).animate({top:Math.random()*window.innerHeight,left:Math.random()*window.innerWidth},'fast');
+                $(this).animate({top:Math.random()*window.innerHeight,right:Math.random()*(window.innerWidth-$(this).width())},'fast');
             });
             return "dontmakediv";
         }
 
         function organize(){
+            var currentheight = 0;
             $(".code").each(function(index){
-                $(this).animate({top:20*index,left:0.9*window.innerWidth},'fast');
+                $(this).addClass("sorted");
+                $(this).animate({top:currentheight,right:0},'fast');
+                currentheight += $(this).outerHeight();
             });
             return "dontmakediv";
         }
