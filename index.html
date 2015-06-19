@@ -1,76 +1,84 @@
 <html>
-<head>
-<script src="bower_components/flocking/dist/flocking-all.js"></script>
-<style>
-input{
-	z-index: 10;
-	width: 50%;
-	position:fixed;
-	top: 50%;
-	left: 25%;
-}
-.code {
-    z-index: 1;
-	position:absolute;
-    opacity: 0.5;
-}
-.code:hover {
-    opacity: 1.0;
-    transition: opacity .15s ease-in-out;
-}
-#result{
-    position: fixed;
-    top: 55%;
-    left:25%;
-    width: 50%;
-    text-align: center;
-}
-#midilayout {
-    position:fixed;
-    display:none;
-    width: 100%;
-    height: 100%;
-}
-.nexus {
-    float: left;
-    width: 24%;
-    height: 24%;
-    background-color:blue;
-    opacity: 0.5;
-    border: 1px solid black;
-}
-.selected {
-    border: 2px dashed blue;
-}
-</style>
-</head>
-<body>
-    <!--input type="text" id="console" onKeyPress="runcode(event)"-->
-    <input type="text" id="console">
-    <div id="count" style="display:none"></div>
-    <div id="result"></div>
-    <div id="midilayout">
-        <div class="nexus"></div>
-        <div class="nexus"></div>
-        <div class="nexus"></div>
-        <div class="nexus"></div>
-    
-        <div class="nexus"></div>
-        <div class="nexus"></div>
-        <div class="nexus"></div>
-        <div class="nexus"></div>
-   
-        <div class="nexus"></div>
-        <div class="nexus"></div>
-        <div class="nexus"></div>
-        <div class="nexus"></div>
-  
-        <div class="nexus"></div>
-        <div class="nexus"></div>
-        <div class="nexus"></div>
-        <div class="nexus"></div>
-    </div>
-    <script>
+    <head>
+        <script src="bower_components/flocking/dist/flocking-all.js"></script>
+        <style>
+            input{
+                z-index: 10;
+                width: 50%;
+                position:fixed;
+                top: 50%;
+                left: 25%;
+            }
+            .code {
+                z-index: 1;
+                position:absolute;
+                opacity: 0.5;
+            }
+            .code:hover {
+                opacity: 1.0;
+                transition: opacity .15s ease-in-out;
+            }
+            #result{
+                position: fixed;
+                top: 55%;
+                left:25%;
+                width: 50%;
+                text-align: center;
+            }
+            #midilayout {
+                position:fixed;
+                display:none;
+                width: 100%;
+                height: 100%;
+            }
+            .nexus {
+                float: left;
+                width: 24%;
+                height: 24%;
+                background-color:blue;
+                opacity: 0.5;
+                border: 1px solid black;
+            }
+            .selected {
+                border: 2px dashed blue;
+            }
+            #codearea{
+                display: none;
+                position : fixed;
+                height: 80%;
+                width: 80%;
+                top: 10%;
+                left: 10%;
+            }
+        </style>
+    </head>
+    <body>
+        <input type="text" id="console">
+        <textarea id="codearea"></textarea>
+        <div id="count" style="display:none"></div>
+        <div id="result"></div>
+        <div id="midilayout">
+            <div class="nexus"></div>
+            <div class="nexus"></div>
+            <div class="nexus"></div>
+            <div class="nexus"></div>
+
+            <div class="nexus"></div>
+            <div class="nexus"></div>
+            <div class="nexus"></div>
+            <div class="nexus"></div>
+
+            <div class="nexus"></div>
+            <div class="nexus"></div>
+            <div class="nexus"></div>
+            <div class="nexus"></div>
+
+            <div class="nexus"></div>
+            <div class="nexus"></div>
+            <div class="nexus"></div>
+            <div class="nexus"></div>
+        </div>
+<script>
     (function (){
         var code = [];
         var recording = false;
@@ -81,110 +89,118 @@ input{
                 $("#midilayout").toggle();
             }
             if(e.keyCode === 13) {
-
-                // if console is a number then show that code
+                var consoleinput = $("#console").val();
+                
+                // if console is a number then highlight that div?
                 // if console is a number with () then run that line
-
-                // load("nameoffile.js"); assumes it is in the instruments folder
-                var isload = document.getElementById("console").value.match(/^load\((?:'|")(.*?)(?:'|")\)/);  
-                if ( isload !== null ) {
-                    (function(){
-                        var newscript = document.createElement("script");
-                        newscript.src = "instruments/" + isload[1];
-                        document.body.appendChild(newscript);
-
-                        // make some sort of div that star wars it up through the screen
-                        $.get(  "instruments/" + isload[1], function(data){
-                            console.log(data);
-                        });
-                    })();
+                var historyshortcut =  consoleinput.match(/(^\d+)(\(\))?/); 
+                if ( historyshortcut !== null ){
+                    if(historyshortcut[2] === undefined ){
+                        history( Number(historyshortcut[0]) );
+                    }else{
+                        // eval localStorage code.length - Number(historyshortcut) ish
+                    }
+                    return;
+                }
+                // look for variable declarations and bind them to global scope...
+                if (consoleinput.search("var ") > -1) {
+                    try{
+                        jQuery.globalEval( consoleinput );
+                        createNewCodeDiv( $('#console').val() );
+                        if (recording) {storecode();}
+                    } catch(err){
+                        bork(err);
+                    }
+                    return;
+                }
+        
+                try{
+                    if ( eval(consoleinput) !== "dontmakediv")
+                        createNewCodeDiv( $('#console').val() );
+                    if (recording) {storecode();}
+                } catch(err){
+                    bork(err);
                 }
 
-                switch (document.getElementById("console").value ){
-                    case 'clear()':
-                        clearCode();
-                        $("#result").show().html("organizing").fadeOut(3000);
-                        break;
-                    case 'record':
-                        recording = true;
-                        break;
-                    case 'last':
-                        $("#result").show().html(code[code.length-1]).fadeOut(3000);
-                        break;
-                    case 'midi':
-                        $("#midilayout").toggle();
-                        break;
-                    case 'last()':
-                        jQuery.globalEval(  code[code.length-1]  ); 
-                        break;
-                    case 'load()':
-                        loadCode();
-                        break;
-                    case 'scatter()':
-                        scatter();
-                        $("#result").show().html("look out").fadeOut(3000);
-                        break;
-                    case 'organize()':
-                         organize();
-                        $("#result").show().html("organizing").fadeOut(3000);
-                        break;
-                    default:  
-                        try{
-
-                            jQuery.globalEval( $('#console').val()     );
-                            createNewCodeDiv( $('#console').val() );
-                            if (recording) {storecode();}
-                        }
-                        catch(err){
-                            $("#result").show().html("nope").fadeOut(3000);
-                            //document.getElementById("console").value = "";
-
-                        }
-                        break; 
-                    }
-
-                $(".selected").removeClass("selected");
-                document.getElementById("console").value = "";
             } 
         };
+
+                function history(index){
+                     
+                    return "dontmakediv";
+                }
+
+                function midi(){
+                    $("#midilayout").toggle();
+                }
+
+                function last(){
+                    eval( code[code.length-1] );
+                    return "dontmakediv";
+                }
+
+                function load(filename){
+                    $.get("instruments/" + filename, function(data){
+                        var newscript = document.createElement("script");
+                        newscript.src = "instruments/" + filename;
+                        document.body.appendChild(newscript);
+                    }).fail(function(){
+                        throw "file not found";
+                    });
+                }
+                
+                function edit(filename){
+                    $.get(  "instruments/" + filename, function(data){
+                        $("#codearea").val(data).show()
+                    }).fail(function(){
+                        throw "file not found";
+                    });
+                }
+
+                function bork(message){
+                    message = (message === undefined)? "nope" : message;
+                    $("#result").show().html(message).fadeOut(3000);
+                    $(".selected").removeClass("selected");
+                    document.getElementById("console").value = "";
+                };
 
         //-------------------------------------
         //  functions to manage localStorage use
         //-------------------------------------
-        function storecode(){
+        function store(){
             var showcount = document.getElementById("count");
             showcount.innerHTML = code.length;
             localStorage['flork-'+code.length] = document.getElementById("console").value;	    
             //code[code.length] = document.getElementById("console").value;	    
         };
 
-        function clearCode(){
-                var i = 0;
-                while (localStorage.getItem("flork-"+i) !== null){
-                    localStorage.removeItem("flork-"+i++);
-                }
+        function wipe(){
+            var i = 0;
+            while (localStorage.getItem("flork-"+i) !== null){
+                localStorage.removeItem("flork-"+i++);
+            }
         };
 
         function loadCode(){
-                for(var i = 0; localStorage.getItem("flork-"+i) !== null; i++){
-                    var storageItem = localStorage.getItem("flork-"+i);
-                    createNewCodeDiv( storageItem );
-                    code[i] = storageItem;
-                }
+            for(var i = 0; localStorage.getItem("flork-"+i) !== null; i++){
+                var storageItem = localStorage.getItem("flork-"+i);
+                createNewCodeDiv( storageItem );
+                code[i] = storageItem;
+            }
         };
 
         function createNewCodeDiv(content){
-                var newdiv = document.createElement("div");	
-                newdiv.innerHTML = content;
-                newdiv.className = "code";
-                newdiv.onclick = function(){
-                    $(this).addClass("selected");
-                    $("#console").val(this.innerHTML);
-                    $("#console").focus();
-                };
-                newdiv.style.top = Math.random() * window.innerHeight;
-                newdiv.style.left= Math.random() * window.innerWidth;
-                document.body.appendChild(newdiv);
+            var newdiv = document.createElement("div");	
+            newdiv.innerHTML = content;
+            newdiv.className = "code";
+            newdiv.onclick = function(){
+                $(this).addClass("selected");
+                $("#console").val(this.innerHTML);
+                $("#console").focus();
+            };
+            newdiv.style.top = Math.random() * window.innerHeight;
+            newdiv.style.left= Math.random() * window.innerWidth;
+            document.body.appendChild(newdiv);
         };
 
         //-------------------------------------
@@ -194,14 +210,19 @@ input{
             $(".code").each(function(){
                 $(this).animate({top:Math.random()*window.innerHeight,left:Math.random()*window.innerWidth},'fast');
             });
+            return "dontmakediv";
         }
 
         function organize(){
             $(".code").each(function(index){
                 $(this).animate({top:20*index,left:0.9*window.innerWidth},'fast');
             });
+            return "dontmakediv";
         }
+
+        // things to do at the beginning
+        $("#console").focus();
     })();
-    </script>
+</script>
 </body>
 </html>

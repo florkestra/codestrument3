@@ -2,6 +2,7 @@
   "name":"codestrument3",
   "version": "0.0.1",
   "dependencies": {
-    "flocking": "git://github.com/colinbdclark/Flocking.git"
+    "flocking": "git://github.com/colinbdclark/Flocking.git",
+    "jqueryui": "git://github.com/jquery/jquery-ui.git"
   }
 }
